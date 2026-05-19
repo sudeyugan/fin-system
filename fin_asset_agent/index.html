@@ -1,0 +1,123 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>FinAgent 智能资产配置系统</title>
+    <!-- 引入 Tailwind CSS 提升视觉高级感 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入金融级图表库 ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+    <!-- 顶部导航 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur px-8 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold tracking-wider bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">FinAgent OS</h1>
+            <p class="text-xs text-slate-400">控制与计算分离金融智能体系统</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <input type="password" id="apiKey" placeholder="输入 DeepSeek API Key" class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-teal-500 w-64">
+        </div>
+    </header>
+
+    <!-- 主体 Bento Grid 布局 -->
+    <main class="max-w-7xl mx-auto p-6 space-y-6">
+        <!-- 输入控制区 -->
+        <section class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+            <label class="block text-sm font-medium text-slate-300 mb-2">🔮 投资诉求与持仓优化意图解析</label>
+            <div class="flex space-x-4">
+                <input type="text" id="userQuery" placeholder="例如：帮我分析一个抗通胀、低波动的防御型资产配置方案..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-teal-500">
+                <button onclick="runWorkflow()" class="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-lg transition duration-200 shadow-lg shadow-teal-500/20">
+                    启动计算链路
+                </button>
+            </div>
+        </section>
+
+        <!-- 结果展示区（默认隐藏） -->
+        <section id="resultSection" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- 状态卡片群 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs text-teal-400 font-mono">STAGE 1: $S_t$</span>
+                    <h3 class="text-sm font-semibold text-slate-400 mt-1">资产筛选状态</h3>
+                </div>
+                <div class="text-2xl font-bold mt-4 text-slate-200" id="statusAssets">--</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs text-cyan-400 font-mono">STAGE 2: $A_t$</span>
+                    <h3 class="text-sm font-semibold text-slate-400 mt-1">沙箱二次规划精度</h3>
+                </div>
+                <div class="text-2xl font-bold mt-4 text-emerald-400">🎯 10⁻⁵ 精准度</div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs text-amber-400 font-mono">STAGE 4: $R_t$</span>
+                    <h3 class="text-sm font-semibold text-slate-400 mt-1">风控合规终审</h3>
+                </div>
+                <div class="text-2xl font-bold mt-4" id="statusRisk">--</div>
+            </div>
+
+            <!-- 图表 Bento 块 -->
+            <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 h-96" id="chartContainer"></div>
+
+            <!-- 策略与风控意见 Bento 块 -->
+            <div class="space-y-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h4 class="text-sm font-bold text-slate-300 mb-2">🧭 择时微调逻辑 ($T_t$)</h4>
+                    <p id="timingReason" class="text-xs text-slate-400 leading-relaxed"></p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 border-l-4 border-l-teal-500">
+                    <h4 class="text-sm font-bold text-slate-300 mb-2">🛡️ 风控审计意见书</h4>
+                    <p id="riskReport" class="text-xs text-slate-400 leading-relaxed"></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let myChart = null;
+
+        async function runWorkflow() {
+            const apiKey = document.getElementById('apiKey').value;
+            const query = document.getElementById('userQuery').value;
+            
+            if(!apiKey || !query) { alert('请检查 API Key 和输入内容'); return; }
+
+            // 发起 Fetch 异步请求调用后端 FastAPI
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/allocate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ query: query, api_key: apiKey })
+                });
+                const data = await response.json();
+                
+                // 展现渲染后的组件
+                document.getElementById('resultSection').classList.remove('hidden');
+                document.getElementById('statusAssets').innerText = `选定 ${data.assets.length} 类核心资产`;
+                document.getElementById('statusRisk').innerText = data.risk_status === 'PASS' ? '🟢 合规通过' : '🔴 风控拦截';
+                document.getElementById('timingReason').innerText = data.timing_reason;
+                document.getElementById('riskReport').innerText = data.risk_report;
+
+                // 渲染 ECharts 动态双柱状图
+                if(!myChart) myChart = echarts.init(document.getElementById('chartContainer'), 'dark');
+                myChart.setOption({
+                    backgroundColor: 'transparent',
+                    title: { text: 'FinRL-X 协议资产权重演变对照 (MVO vs 大模型微调)', textStyle: {fontSize: 14, color: '#94a3b8'} },
+                    tooltip: { trigger: 'axis' },
+                    legend: { data: ['沙箱 Base 权重', '最终执行权重'], top: 'bottom' },
+                    xAxis: { type: 'category', data: data.assets },
+                    yAxis: { type: 'value', axisLabel: { formatter: '{value}' } },
+                    series: [
+                        { name: '沙箱 Base 权重', type: 'bar', data: data.base_weights, itemStyle: {color: '#1e3a8a'} },
+                        { name: '最终执行权重', type: 'bar', data: data.final_weights, itemStyle: {color: '#10b981'} }
+                    ]
+                });
+            } catch(e) { alert('请求失败，请确保 main_api.py 后端服务已启动'); }
+        }
+    </script>
+</body>
+</html>
