@@ -1,8 +1,19 @@
 # main_api.py
+import os
+import sys
+
+os.environ["PYTHONUTF8"] = "1"
+os.environ["PYTHONIOENCODING"] = "utf-8"
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend_engine import FinAgentWorkflow  
+from core_brain.workflow import run_fin_agent_pipeline
 
 app = FastAPI()
 
@@ -25,8 +36,7 @@ async def allocate_portfolio(req: AllocationRequest):
         raise HTTPException(status_code=400, detail="API Key 不能为空")
     try:
         # 调用之前写好的 DeepSeek + Sandbox 工作流
-        engine = FinAgentWorkflow(api_key=req.api_key)
-        result = engine.run_workflow(req.query)
+        result = run_fin_agent_pipeline(req.query, req.api_key)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

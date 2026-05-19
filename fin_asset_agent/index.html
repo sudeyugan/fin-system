@@ -1,81 +1,165 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>FinAgent 智能资产配置系统</title>
-    <!-- 引入 Tailwind CSS 提升视觉高级感 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinAgent OS - 现代智能资产配置</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入金融级图表库 ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        /* 引入高级无衬线字体 Inter 和 Plus Jakarta Sans */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #F8FAFC; /* 极浅的蓝灰色背景，衬托纯白卡片 */
+            color: #0F172A;
+        }
+        
+        .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* 高级定制阴影：极度柔和、大范围弥散 */
+        .shadow-premium {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 24px -3px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* 输入框聚焦时的精致光晕 */
+        .input-ring:focus-within {
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            border-color: #6366f1;
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+<body class="min-h-screen antialiased selection:bg-indigo-100 selection:text-indigo-900">
 
-    <!-- 顶部导航 -->
-    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur px-8 py-4 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-bold tracking-wider bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">FinAgent OS</h1>
-            <p class="text-xs text-slate-400">控制与计算分离金融智能体系统</p>
-        </div>
-        <div class="flex items-center space-x-3">
-            <input type="password" id="apiKey" placeholder="输入 DeepSeek API Key" class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-teal-500 w-64">
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-8 py-5">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm text-white font-display font-bold text-lg">
+                    F
+                </div>
+                <div>
+                    <h1 class="text-lg font-display font-bold text-slate-900 tracking-tight">FinAgent OS</h1>
+                    <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-0.5">Wealth Management Core</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center">
+                <div class="relative group input-ring rounded-xl transition-all duration-300 bg-slate-50 border border-slate-200 flex items-center px-3 py-2">
+                    <svg class="w-4 h-4 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                    <input type="password" id="apiKey" placeholder="DeepSeek API Key" 
+                           class="bg-transparent text-sm w-56 focus:outline-none text-slate-700 placeholder-slate-400 font-medium">
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- 主体 Bento Grid 布局 -->
-    <main class="max-w-7xl mx-auto p-6 space-y-6">
-        <!-- 输入控制区 -->
-        <section class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
-            <label class="block text-sm font-medium text-slate-300 mb-2">🔮 投资诉求与持仓优化意图解析</label>
-            <div class="flex space-x-4">
-                <input type="text" id="userQuery" placeholder="例如：帮我分析一个抗通胀、低波动的防御型资产配置方案..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-teal-500">
-                <button onclick="runWorkflow()" class="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-lg transition duration-200 shadow-lg shadow-teal-500/20">
-                    启动计算链路
-                </button>
+    <main class="max-w-7xl mx-auto p-6 md:p-8 space-y-8 mt-4">
+        
+        <section class="bg-white rounded-[2rem] p-8 md:p-10 shadow-premium border border-slate-100">
+            <div class="max-w-3xl">
+                <h2 class="text-2xl font-display font-bold text-slate-900 mb-2">制定您的资产配置策略</h2>
+                <p class="text-sm text-slate-500 mb-8 font-medium leading-relaxed">
+                    输入您的投资诉求。我们的控制与计算分离引擎（FinRL-X）将结合数学沙箱与大模型意图，为您生成高精度的调仓建议。
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1 input-ring bg-white border border-slate-200 rounded-2xl flex items-center px-5 py-4 transition-all duration-300 shadow-sm">
+                        <span class="text-2xl mr-3">✨</span>
+                        <input type="text" id="userQuery" placeholder="例如：帮我配置一个抗通胀、低波动的防御型组合..." 
+                               class="bg-transparent text-base w-full focus:outline-none text-slate-800 placeholder-slate-400 font-medium">
+                    </div>
+                    <button onclick="runWorkflow()" 
+                            class="bg-slate-900 hover:bg-indigo-600 text-white font-medium text-base px-8 py-4 rounded-2xl transition-colors duration-300 shadow-lg shadow-slate-900/20 active:scale-95 whitespace-nowrap">
+                        生成策略方案
+                    </button>
+                </div>
             </div>
         </section>
 
-        <!-- 结果展示区（默认隐藏） -->
-        <section id="resultSection" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- 状态卡片群 -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
-                <div>
-                    <span class="text-xs text-teal-400 font-mono">STAGE 1: $S_t$</span>
-                    <h3 class="text-sm font-semibold text-slate-400 mt-1">资产筛选状态</h3>
+        <section id="resultSection" class="hidden space-y-8 animate-fade-in-up">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-premium border border-slate-100">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">阶段 1: 资产筛选</p>
+                            <h3 class="text-sm font-semibold text-slate-700">底层资产池状态</h3>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-display font-bold text-slate-900" id="statusAssets">--</div>
                 </div>
-                <div class="text-2xl font-bold mt-4 text-slate-200" id="statusAssets">--</div>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
-                <div>
-                    <span class="text-xs text-cyan-400 font-mono">STAGE 2: $A_t$</span>
-                    <h3 class="text-sm font-semibold text-slate-400 mt-1">沙箱二次规划精度</h3>
+
+                <div class="bg-white rounded-2xl p-6 shadow-premium border border-slate-100">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">阶段 2: 数学引擎</p>
+                            <h3 class="text-sm font-semibold text-slate-700">沙箱规划精度</h3>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-display font-bold text-indigo-600 flex items-baseline space-x-1">
+                        <span>10</span><sup class="text-sm">-5</sup><span class="text-base font-medium text-slate-500 ml-2">级精准求解</span>
+                    </div>
                 </div>
-                <div class="text-2xl font-bold mt-4 text-emerald-400">🎯 10⁻⁵ 精准度</div>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
-                <div>
-                    <span class="text-xs text-amber-400 font-mono">STAGE 4: $R_t$</span>
-                    <h3 class="text-sm font-semibold text-slate-400 mt-1">风控合规终审</h3>
+
+                <div class="bg-white rounded-2xl p-6 shadow-premium border border-slate-100">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600" id="riskIconBg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">阶段 4: 风险控制</p>
+                            <h3 class="text-sm font-semibold text-slate-700">风控与合规终审</h3>
+                        </div>
+                    </div>
+                    <div class="text-xl font-display font-bold" id="statusRisk">--</div>
                 </div>
-                <div class="text-2xl font-bold mt-4" id="statusRisk">--</div>
             </div>
 
-            <!-- 图表 Bento 块 -->
-            <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 h-96" id="chartContainer"></div>
-
-            <!-- 策略与风控意见 Bento 块 -->
-            <div class="space-y-6">
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                    <h4 class="text-sm font-bold text-slate-300 mb-2">🧭 择时微调逻辑 ($T_t$)</h4>
-                    <p id="timingReason" class="text-xs text-slate-400 leading-relaxed"></p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <div class="lg:col-span-2 bg-white rounded-[2rem] p-8 shadow-premium border border-slate-100 h-[480px]">
+                    <div class="mb-2">
+                        <h3 class="text-lg font-display font-bold text-slate-900">配置权重演变对照</h3>
+                        <p class="text-sm text-slate-500 mt-1">沙箱纯数学模型 (MVO) 与 大模型业务意图微调结果对比</p>
+                    </div>
+                    <div id="chartContainer" class="w-full h-[380px]"></div>
                 </div>
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 border-l-4 border-l-teal-500">
-                    <h4 class="text-sm font-bold text-slate-300 mb-2">🛡️ 风控审计意见书</h4>
-                    <p id="riskReport" class="text-xs text-slate-400 leading-relaxed"></p>
+
+                <div class="flex flex-col space-y-6">
+                    <div class="flex-1 bg-white rounded-[2rem] p-8 shadow-premium border border-slate-100">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <div class="w-2 h-6 bg-indigo-500 rounded-full"></div>
+                            <h4 class="text-base font-display font-bold text-slate-900">策略意图微调逻辑</h4>
+                        </div>
+                        <p id="timingReason" class="text-sm text-slate-600 leading-relaxed font-medium"></p>
+                    </div>
+                    
+                    <div class="flex-1 bg-slate-50 rounded-[2rem] p-8 shadow-inner border border-slate-200/60">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <div class="w-2 h-6 bg-slate-400 rounded-full" id="riskLineColor"></div>
+                            <h4 class="text-base font-display font-bold text-slate-900">风控审计意见书</h4>
+                        </div>
+                        <p id="riskReport" class="text-sm text-slate-600 leading-relaxed font-medium"></p>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
 
     <script>
         let myChart = null;
@@ -84,9 +168,17 @@
             const apiKey = document.getElementById('apiKey').value;
             const query = document.getElementById('userQuery').value;
             
-            if(!apiKey || !query) { alert('请检查 API Key 和输入内容'); return; }
+            if(!apiKey || !query) { 
+                alert('提示：请完整填写 API Key 与您的投资诉求。'); 
+                return; 
+            }
 
-            // 发起 Fetch 异步请求调用后端 FastAPI
+            // 按钮加载状态视觉反馈
+            const btn = document.querySelector('button');
+            const originalBtnText = btn.innerText;
+            btn.innerText = '引擎计算中...';
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+
             try {
                 const response = await fetch('http://127.0.0.1:8000/api/allocate', {
                     method: 'POST',
@@ -95,28 +187,109 @@
                 });
                 const data = await response.json();
                 
-                // 展现渲染后的组件
+                // 恢复按钮状态
+                btn.innerText = originalBtnText;
+                btn.classList.remove('opacity-80', 'cursor-not-allowed');
+
+                // 显示结果区块
                 document.getElementById('resultSection').classList.remove('hidden');
+                
+                // 绑定文字数据
                 document.getElementById('statusAssets').innerText = `选定 ${data.assets.length} 类核心资产`;
-                document.getElementById('statusRisk').innerText = data.risk_status === 'PASS' ? '🟢 合规通过' : '🔴 风控拦截';
                 document.getElementById('timingReason').innerText = data.timing_reason;
                 document.getElementById('riskReport').innerText = data.risk_report;
 
-                // 渲染 ECharts 动态双柱状图
-                if(!myChart) myChart = echarts.init(document.getElementById('chartContainer'), 'dark');
-                myChart.setOption({
+                // 动态调整风控卡片的 UI 颜色
+                const riskEl = document.getElementById('statusRisk');
+                const riskIconBg = document.getElementById('riskIconBg');
+                const riskLineColor = document.getElementById('riskLineColor');
+                
+                if(data.risk_status === 'PASS') {
+                    riskEl.innerText = '审核通过';
+                    riskEl.className = 'text-xl font-display font-bold text-emerald-600';
+                    riskIconBg.className = 'w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600';
+                    riskLineColor.className = 'w-2 h-6 bg-emerald-500 rounded-full';
+                } else {
+                    riskEl.innerText = '风控拦截';
+                    riskEl.className = 'text-xl font-display font-bold text-rose-600';
+                    riskIconBg.className = 'w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-600';
+                    riskLineColor.className = 'w-2 h-6 bg-rose-500 rounded-full';
+                }
+
+                // 渲染高级质感 ECharts 图表 (亮色主题定制)
+                if(!myChart) myChart = echarts.init(document.getElementById('chartContainer'), null, {renderer: 'svg'});
+                
+                const option = {
                     backgroundColor: 'transparent',
-                    title: { text: 'FinRL-X 协议资产权重演变对照 (MVO vs 大模型微调)', textStyle: {fontSize: 14, color: '#94a3b8'} },
-                    tooltip: { trigger: 'axis' },
-                    legend: { data: ['沙箱 Base 权重', '最终执行权重'], top: 'bottom' },
-                    xAxis: { type: 'category', data: data.assets },
-                    yAxis: { type: 'value', axisLabel: { formatter: '{value}' } },
+                    tooltip: {
+                        trigger: 'axis',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        borderColor: '#E2E8F0',
+                        borderWidth: 1,
+                        padding: [12, 16],
+                        textStyle: { color: '#0F172A', fontSize: 13, fontFamily: 'Inter' },
+                        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(241, 245, 249, 0.5)' } },
+                        extraCssText: 'box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-radius: 12px;'
+                    },
+                    legend: {
+                        data: ['沙箱数学解 (Base)', '智能微调解 (Final)'],
+                        bottom: 0,
+                        icon: 'circle',
+                        itemGap: 24,
+                        textStyle: { color: '#64748B', fontSize: 13, fontFamily: 'Inter', fontWeight: 500 }
+                    },
+                    grid: { top: '8%', left: '2%', right: '2%', bottom: '12%', containLabel: true },
+                    xAxis: {
+                        type: 'category',
+                        data: data.assets,
+                        axisLine: { lineStyle: { color: '#E2E8F0' } },
+                        axisTick: { show: false },
+                        axisLabel: { color: '#475569', fontSize: 12, fontFamily: 'Inter', margin: 16 }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        splitLine: { lineStyle: { color: '#F1F5F9', type: 'dashed' } },
+                        axisLabel: { color: '#94A3B8', fontSize: 12, fontFamily: 'Inter' }
+                    },
                     series: [
-                        { name: '沙箱 Base 权重', type: 'bar', data: data.base_weights, itemStyle: {color: '#1e3a8a'} },
-                        { name: '最终执行权重', type: 'bar', data: data.final_weights, itemStyle: {color: '#10b981'} }
+                        {
+                            name: '沙箱数学解 (Base)',
+                            type: 'bar',
+                            data: data.base_weights,
+                            barWidth: '24%',
+                            itemStyle: {
+                                color: '#94A3B8', // 低调的蓝灰色
+                                borderRadius: [6, 6, 0, 0]
+                            }
+                        },
+                        {
+                            name: '智能微调解 (Final)',
+                            type: 'bar',
+                            data: data.final_weights,
+                            barWidth: '24%',
+                            itemStyle: {
+                                // 高级感靛蓝色渐变
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                    { offset: 0, color: '#6366F1' }, 
+                                    { offset: 1, color: '#4338CA' }  
+                                ]),
+                                borderRadius: [6, 6, 0, 0],
+                                shadowColor: 'rgba(99, 102, 241, 0.2)',
+                                shadowBlur: 10,
+                                shadowOffsetY: 4
+                            }
+                        }
                     ]
-                });
-            } catch(e) { alert('请求失败，请确保 main_api.py 后端服务已启动'); }
+                };
+                
+                myChart.setOption(option);
+                window.addEventListener('resize', () => myChart && myChart.resize());
+                
+            } catch(e) { 
+                btn.innerText = originalBtnText;
+                btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                alert('请求失败，请确保本地 FastAPI (main_api.py) 服务已正常启动。'); 
+            }
         }
     </script>
 </body>
