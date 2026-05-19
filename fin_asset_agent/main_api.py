@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from core_brain.workflow import run_fin_agent_pipeline
+from core_brain.router import CoreRouter
 
 app = FastAPI()
 
