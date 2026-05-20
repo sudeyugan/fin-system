@@ -4,7 +4,39 @@ FinAgent OS 是一个基于 **控制与计算分离（Separation of Control and 
 
 ---
 
-## 🛠️ 项目当前开发进展综述
+## � 快速开始与使用方法
+
+### 1. 环境准备
+确保已安装 Python 3.10+，并在项目根目录安装相关依赖：
+```bash
+# 创建并激活虚拟环境（推荐）
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+
+# 安装依赖
+pip install -r requirements.txt
+```
+
+### 2. 启动核心 API 服务
+启动基于 FastAPI 的编排工作流后端，向前端提供由 LangGraph 驱动的配置接口：
+```bash
+# 进入核心业务模块
+cd fin_asset_agent
+
+# 启动服务器（默认运行在 http://127.0.0.1:8000）
+python main_api.py
+```
+
+### 3. 访问前端交互套件
+- 保持后端服务运行，在浏览器中直接双击打开 [fin_asset_agent/index.html](fin_asset_agent/index.html) 或将其拖入浏览器中。
+- 在前端操作面板的配置区域输入你的 **DeepSeek API Key**。
+- 在对话框输入你的大白话个人资产规划需求（*例如："我有50万，目前单身，风险承受能力还可以，帮我配置一些A股蓝筹以及部分美股标的"*）。
+- 系统将在界面实时展示语言模型推理、纯数学沙箱重算、以及人机意图微调对齐的全维审计流演进过程。
+
+---
+
+## �🛠️ 项目当前开发进展综述
 
 根据当前代码库的审查，系统已完成了**核心链路的闭环搭建（端到端 Pipeline 已完全跑通）**，但在具体的文件组织架构上，目前采用的是**高内聚的紧凑型实现**（许多蓝图中的细分 Agent 逻辑暂时内聚于 `core_brain/workflow.py` 状态机节点中，数据抓取也完全收拢在 `data_ops/market_data.py`）。
 
