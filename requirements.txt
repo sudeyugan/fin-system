@@ -4,3 +4,6 @@ langgraph
 numpy
 scipy
 pydantic
+yfinance
+pandas
+akshare

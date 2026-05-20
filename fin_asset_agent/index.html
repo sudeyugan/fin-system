@@ -123,6 +123,46 @@
                     </div>
                 </section>
 
+                <section id="profileSection" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up">
+                    <div class="md:col-span-1 bg-white rounded-[2rem] p-6 shadow-premium border border-slate-100 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold font-display text-sm" id="profAvatar">
+                                    --
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-display font-bold text-slate-900" id="profName">--</h3>
+                                    <p class="text-xs font-medium text-slate-500" id="profOcc">--</p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 border-t border-slate-100 pt-3 text-slate-600 text-xs font-medium">
+                                <div class="flex justify-between"><span>年龄段：</span><span class="text-slate-900" id="profAge">--</span></div>
+                                <div class="flex justify-between"><span>投资期限：</span><span class="text-slate-900" id="profHorizon">--</span></div>
+                                <div class="flex justify-between"><span>核心理财目标：</span><span class="text-slate-900 md:max-w-[150px] truncate" id="profGoal">--</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-400 uppercase">风险偏好评估</span>
+                            <span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 font-display font-bold text-xs rounded-lg" id="profRiskLevel">--</span>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2 bg-white rounded-[2rem] p-6 shadow-premium border border-slate-100">
+                        <div class="flex justify-between items-center mb-2">
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Asset Snapshot</p>
+                                <h3 class="text-base font-display font-bold text-slate-900">当前资产存量结构</h3>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-bold text-slate-400">净资产总额</p>
+                                <p class="text-lg font-display font-bold text-indigo-600" id="profTotalWealth">--</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3 mt-4" id="snapshotBarContainer">
+                            </div>
+                    </div>
+                </section>
+
                 <section id="resultSection" class="hidden space-y-6 animate-fade-in">
                     
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -263,6 +303,47 @@
                 
                 btn.innerHTML = originalBtnText;
                 btn.classList.remove('opacity-60', 'cursor-not-allowed');
+
+                // 显示档案区块
+                document.getElementById('profileSection').classList.remove('hidden');
+
+                // 绑定画像数据
+                document.getElementById('profName').innerText = data.user_profile.name;
+                document.getElementById('profAvatar').innerText = data.user_profile.name.charAt(0);
+                document.getElementById('profOcc').innerText = data.user_profile.occupation;
+                document.getElementById('profAge').innerText = data.user_profile.age + ' 岁';
+                document.getElementById('profHorizon').innerText = data.user_profile.investment_horizon;
+                document.getElementById('profGoal').innerText = data.user_profile.financial_goals;
+                document.getElementById('profRiskLevel').innerText = `${data.user_profile.risk_tolerance_level} (${data.user_profile.risk_score}分)`;
+                document.getElementById('profTotalWealth').innerText = '¥' + data.asset_snapshot.total_wealth.toLocaleString();
+
+                // 渲染存量分布进度条
+                const currentAlloc = data.asset_snapshot.current_allocation;
+                const total = data.asset_snapshot.total_wealth;
+                let barHtml = '';
+
+                const labelMap = {
+                    'Cash_Equivalents': { name: '现金及高流动性资产', color: 'bg-emerald-500' },
+                    'Fixed_Income': { name: '固定收益与纯债自选', color: 'bg-blue-500' },
+                    'Equities': { name: '权益类/股票型高波资产', color: 'bg-indigo-500' },
+                    'Alternative_Assets': { name: '商品/黄金另类避险资产', color: 'bg-amber-500' }
+                };
+
+                for (let key in currentAlloc) {
+                    const val = currentAlloc[key];
+                    const pct = ((val / total) * 100).toFixed(1);
+                    barHtml += `
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-slate-500 mb-1">
+                                <span>${labelMap[key].name}</span>
+                                <span class="text-slate-700 font-bold">¥${val.toLocaleString()} (${pct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div class="${labelMap[key].color} h-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
 
                 document.getElementById('resultSection').classList.remove('hidden');
                 document.getElementById('resultSection').classList.add('animate-fade-in');

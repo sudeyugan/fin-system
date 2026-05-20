@@ -5,10 +5,14 @@ from typing import TypedDict, List
 from openai import OpenAI
 from sandbox.mvo_solver import MVOSolver
 
+from data_ops.market_data import MarketDataFetcher
+
 # 定义全局图状态（扩充了对api_key和前端展示字段的支持）
 class GraphState(TypedDict):
     user_query: str
     api_key: str
+    user_profile: dict  
+    asset_snapshot: dict
     available_assets: List[str]
     expected_returns: List[float]
     cov_matrix: List[List[float]]
@@ -23,7 +27,7 @@ def call_deepseek(api_key: str, prompt: str) -> dict:
     """内部通用函数：调用 DeepSeek 并要求强制输出 JSON"""
     client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
     response = client.chat.completions.create(
-        model="deepseek-chat",
+        model="deepseek-v4-pro",
         messages=[
             {"role": "system", "content": "你是一个严谨的金融智能体，你的输出必须是合法的 JSON 格式。"},
             {"role": "user", "content": prompt}
@@ -36,16 +40,27 @@ def call_deepseek(api_key: str, prompt: str) -> dict:
 # --- 节点定义 (Real Expert Agents) ---
 
 def asset_screening_node(state: GraphState):
-    """S_t: 分析师 Agent - 提取资产池。这里使用一组经典科技股进行沙箱测试"""
-    print("-> [S_t] Analyst Agent: 筛选底层资产池...")
+    """S_t: 分析师 Agent - 智能提取/选定资产池，并调用 DataOps 抓取真实时间序列指标"""
+    print("-> [S_t] Analyst Agent: 开始筛选底层资产池并拉取真实行情...")
+    
+    # 采用国内 A 股测试：茅台、工行、比亚迪 (注意 yfinance 的 A 股后缀 .SS / .SZ)
+    tickers = ["601899.SS", "601398.SS", "000858.SZ"]
+    
+    # 实例化 DataOps 抓取器（拉取过去 2 年的真实日线）
+    fetcher = MarketDataFetcher(lookback_years=2)
+    expected_returns, cov_matrix = fetcher.fetch_and_calculate(tickers)
+    
+    asset_names_map = {
+        "601899.SS": "贵州茅台 (酒类消费)",
+        "601398.SS": "工商银行 (大型金融)",
+        "000858.SZ": "比亚迪 (新能源车)"
+    }
+    
+    
     return {
-        "available_assets": ["AAPL (苹果)", "MSFT (微软)", "GOOGL (谷歌)"],
-        "expected_returns": [0.12, 0.10, 0.08],
-        "cov_matrix": [
-            [0.04, 0.02, 0.01],
-            [0.02, 0.03, 0.015],
-            [0.01, 0.015, 0.05]
-        ]
+        "available_assets": [asset_names_map.get(t, f"{t} (资产)") for t in tickers],
+        "expected_returns": expected_returns,
+        "cov_matrix": cov_matrix
     }
 
 def sandbox_allocation_node(state: GraphState):
@@ -78,6 +93,50 @@ def timing_adjustment_node(state: GraphState):
     except Exception as e:
         print(f"Timing Node LLM Error: {e}")
         return {"adjusted_weights": state["base_weights"], "timing_reason": "微调调用失败，采用沙箱默认原权重。"}
+
+def profile_generation_node(state: GraphState):
+    """P_t: 档案专家 Agent - 基于用户输入生成或提取模拟资产档案"""
+    print("-> [P_t] Profile Agent: 正在生成/加载用户资产档案...")
+    
+    prompt = f"""
+    基于用户的核心诉求/输入: "{state['user_query']}"
+    请扮演资深财富管理顾问，为该用户量身创设一个合乎情理的虚拟资产档案。
+    必须严格返回 JSON 格式，包含以下字段：
+    {{
+        "user_profile": {{
+            "name": "随机一个中文名",
+            "age": 25-60之间的整数,
+            "occupation": "匹配其口吻的职业",
+            "risk_tolerance_level": "保守型/稳健型/平衡型/成长型/进取型",
+            "risk_score": 1-100之间的整数,
+            "investment_horizon": "投资期限说明",
+            "financial_goals": "理财目标描述"
+        }},
+        "asset_snapshot": {{
+            "total_wealth": 100000-5000000之间的整数,
+            "current_allocation": {{
+                "Cash_Equivalents": 现金及货币基金数额,
+                "Fixed_Income": 固收及债券数额,
+                "Equities": 股票及权益基金数额,
+                "Alternative_Assets": 黄金/商品等另类资产数额
+            }}
+        }}
+    }}
+    注意：current_allocation各子项数额相加必须等于 total_wealth。
+    """
+    try:
+        res = call_deepseek(state["api_key"], prompt)
+        return {
+            "user_profile": res.get("user_profile", {}),
+            "asset_snapshot": res.get("asset_snapshot", {})
+        }
+    except Exception as e:
+        print(f"Profile Node Error: {e}")
+        # 降级兜底默认档案
+        return {
+            "user_profile": {"name": "体验用户", "age": 30, "occupation": "自由职业", "risk_tolerance_level": "平衡型", "risk_score": 50, "investment_horizon": "中短期", "financial_goals": "资产稳健流动"},
+            "asset_snapshot": {"total_wealth": 500000, "current_allocation": {"Cash_Equivalents": 100000, "Fixed_Income": 200000, "Equities": 150000, "Alternative_Assets": 50000}}
+        }
 
 def risk_compliance_node(state: GraphState):
     """R_t: 风控合规 Agent - 安全网卡口与报告生成"""
@@ -117,12 +176,14 @@ def risk_compliance_node(state: GraphState):
 
 # --- 构建状态机图谱 ---
 workflow = StateGraph(GraphState)
+workflow.add_node("Profile_P_t", profile_generation_node)
 workflow.add_node("Screening_S_t", asset_screening_node)
 workflow.add_node("Sandbox_A_t", sandbox_allocation_node)
 workflow.add_node("Timing_T_t", timing_adjustment_node)
 workflow.add_node("Risk_R_t", risk_compliance_node)
 
-workflow.add_edge(START, "Screening_S_t")
+workflow.add_edge(START, "Profile_P_t")
+workflow.add_edge("Profile_P_t", "Screening_S_t")
 workflow.add_edge("Screening_S_t", "Sandbox_A_t")
 workflow.add_edge("Sandbox_A_t", "Timing_T_t")
 workflow.add_edge("Timing_T_t", "Risk_R_t")
@@ -152,5 +213,7 @@ def run_fin_agent_pipeline(query: str, api_key: str) -> dict:
         "final_weights": final_state.get("final_weights", []),
         "risk_status": final_state.get("risk_status", "PASS"),
         "timing_reason": final_state.get("timing_reason", "无调整"),
-        "risk_report": final_state.get("risk_report", "未执行风控检查")
+        "risk_report": final_state.get("risk_report", "未执行风控检查"),
+        "user_profile": final_state.get("user_profile", {}),
+        "asset_snapshot": final_state.get("asset_snapshot", {})
     }
